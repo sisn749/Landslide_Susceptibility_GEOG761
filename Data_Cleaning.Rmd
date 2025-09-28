@@ -1,0 +1,137 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(dplyr)
+library(tidyverse)
+```
+```{r}
+landslides <- read_csv("landslides_auckland_region_only_strict.csv")
+```
+General elimination of columns that do not matter
+```{r}
+print(colnames(landslides))
+```
+
+```{r}
+landslides <- landslides %>% dplyr::select(-`OBJECTID *`, -`Landslide Database GUID *`, -`Landslide Description`, -`Landslide Description`, -Name, -`Activity Type`, -Description, -`Source Description`, -`Parent ID Value`, - `Parent ID Name`, -`Primary Movement ID`, -`Created On`, -`Activity Recent`, -`Area Method`, -`Cause Primary`, -`Cause Secondary`, -Comments, -`Damage Assets`, -`Damage Cost Base`, -`Damage Deaths`, -`Damage Description`, -`Damage Environmental`, -`Damage Injuries`, -`Date Confidence`, -`Dating Method Accuracy`, -Deaths, -Depletion, -`Depth Rupture`, -Disabled, -`Geometry Modified On`, -`How was this Landslide Found?`, -`How Serious`, -`Impacted Features`, -Injuries, -`Is Duplicate Landslide`, -`Is Public`, -`Location Accuracy`, -`Location Description`, -`Material Debris Type`, -`Material Type`, -`Shape *`, -`GlobalID *`, -`Primary Movement Type Sub Class ID`, -`Unique ID of Landslide in Original Database`, -`Modified On`, -`Recent Date Occurrence`, -`Upslope Catchment Description`, -`Trigger Rainfall 7 Day`, -`Trigger Rainfall 3 Day`, -`Trigger Rainfall 1 Day`, -`Trigger Earthquake`, -`Source Type`, -`Source Bulk Upload`, -`Size of Slip`, -`Secondary Movement`, -`Region`, -`Recent Movement`, -`QA Status`, -`QA Level`, -`Project ID`, -`Primary Movement`, -`Physical Setting`, -`Number of Slips`, -`Movement Style`, -`Movement`, -`Method`)
+```
+
+```{r}
+landslides <- landslides %>% dplyr::select(-Aspect, -`Damage Cost`, -Geology, -Geomorphology, -`Location Accuracy GNS`, -Vegetation)
+```
+
+```{r}
+landslides <- landslides %>% dplyr::select(-`Date Occurence`)
+```
+
+```{r}
+landslides <- landslides %>% dplyr::select(-`Landslide Type`, -Accumulation)
+```
+
+Getting rid of missing values 
+
+```{r}
+landslides[landslides == "<Null>"] <- NA
+landslides <- landslides[!is.na(landslides$`Area Maximum`), ]
+```
+
+```{r}
+landslides_complete <- landslides[complete.cases(landslides), ]
+landslides_incomplete <- landslides %>% dplyr::select(-`Activity Velocity`, -`Angle Rupture Surface`, -`Angle Slope Displaced`, -`Angle Slope Prior`, -`Area Minimum`, -Length, -Scarp, -`Travel Angle`, -`Volume Maximum`, -`Volume Minimum`, -Width, -`Width Rupture`)
+```
+
+
+
+Sampling random points in the auckland region and constructing the same columns for them
+
+
+```{r}
+# Single reference point
+lon_center <- 174.76
+lat_center <- -36.85
+
+# Define buffer size in degrees (approx. 0.01 ≈ 1 km)
+lon_buffer <- 0.20  # ~2 km east/west
+lat_buffer <- 0.20  # ~2 km north/south
+
+# Bounding box around the point
+lon_min <- lon_center - lon_buffer
+lon_max <- lon_center + lon_buffer
+lat_min <- lat_center - lat_buffer
+lat_max <- lat_center + lat_buffer
+
+# Number of random points to generate
+n_points <- 11926
+
+# Sample random points
+non_landslides_incomplete <- data.frame(
+  Latitude = runif(n_points, min = lat_min, max = lat_max),
+  Longitude = runif(n_points, min = lon_min, max = lon_max)
+)
+```
+
+
+```{r}
+# Single reference point
+lon_center <- 174.76
+lat_center <- -36.85
+
+# Define buffer size in degrees (approx. 0.01 ≈ 1 km)
+lon_buffer <- 0.20  # ~2 km east/west
+lat_buffer <- 0.20  # ~2 km north/south
+
+# Bounding box around the point
+lon_min <- lon_center - lon_buffer
+lon_max <- lon_center + lon_buffer
+lat_min <- lat_center - lat_buffer
+lat_max <- lat_center + lat_buffer
+
+# Number of random points to generate
+n_points <- 12
+
+# Sample random points
+non_landslides_complete <- data.frame(
+  Latitude = runif(n_points, min = lat_min, max = lat_max),
+  Longitude = runif(n_points, min = lon_min, max = lon_max)
+)
+```
+
+
+
+```{r}
+combined_data_incomplete <- bind_rows(landslides_incomplete, non_landslides_incomplete)
+combined_data_complete <- bind_rows(landslides_complete, non_landslides_complete)
+```
+
+
+```{r}
+combined_data_incomplete_clean <- combined_data_incomplete %>%
+  mutate(`Valid Landslide` = case_when(
+    `Valid Landslide` == "Yes" ~ 1,
+    is.na(`Valid Landslide`)   ~ 0,
+    TRUE                     ~ 0   # everything else becomes 0
+  ))
+```
+
+```{r}
+combined_data_complete_clean <- combined_data_complete %>%
+  mutate(`Valid Landslide` = case_when(
+    `Valid Landslide` == "Yes" ~ 1,
+    is.na(`Valid Landslide`)   ~ 0,
+    TRUE                     ~ 0   # everything else becomes 0
+  ))
+```
+
+
+```{r}
+write_csv(combined_data_complete_clean, "C:/Users/sssan/University/GEOG761/combined_data_complete_clean.csv")
+write_csv(combined_data_incomplete_clean, "C:/Users/sssan/University/GEOG761/combined_data_incomplete_clean.csv")
+```
+
