@@ -33,9 +33,8 @@ flowchart TD
         P2_Monitoring -- Enhance --> Inventory[("Auckland Landslide Inventory ⚠️")]
 
         P1_pre -.-> P1_fine_tune["Landslide Detection ⚠️"]
-        P1_fine_tune -.- transfer(["Transfer Learning<br>/Fine-tune"])
-        
-        Inventory -.- Lack(["Lack of occurend date ⚠️<br>(160 points, PoC anyway)"])
+        P1_fine_tune -.- transfer(["Transfer Learning<br> and/or Fine-Tuning"])
+
         Inventory -. Enabled .-> P1_fine_tune
 
 ```
@@ -47,7 +46,10 @@ flowchart TD
 ```mermaid
 flowchart LR
         start(["Start"])
-        start --> change["Change Monitoring"]
+        start --> event[/Event Occure/]
+        start --> continuous[/Continuous/]
+        event --Trigger--> change["Change Monitoring"]
+        continuous --Periodic--> change["Change Monitoring"]
         change --> changed?{"Change?"}
         changed? -- No  --> ter(["End"])
         changed? -- Yes --> detection["Landslide Detection"]
@@ -70,8 +72,7 @@ flowchart LR
 
 ### Step 2: Fetch Events Geo Data
 - Notebook: [2-events-explore.ipynb](https://github.com/dhnhut/Landslide-DeepLearning/refs/heads/main/2-events-explore.ipynb)
-- Fetch all GEO Data of events that have occurence data 
-- It around <160 data points
+- Fetch all GEO Data of events that have occurence data
 
 ![Post event Geo image](https://raw.githubusercontent.com/dhnhut/Landslide-DeepLearning/refs/heads/main/docs/post_event.png "Post event Geo image")
 
