@@ -3,14 +3,14 @@ library(dplyr)
 library(tools)
 
 # --- paths ---
-csv_path <- "C:/Users/sssan/University/GEOG761/combined_data.csv"
+csv_path <- "C:/Users/sssan/University/GEOG761/combined_data_incomplete.csv"
 dirs <- c(
-  "C:/Users/sssan/University/GEOG761/combined_data.csv/TIFF_Files/ASPECT",
-  "C:/Users/sssan/University/GEOG761/combined_data.csv/TIFF_Files/CURVATURE",
-  "C:/Users/sssan/University/GEOG761/combined_data.csv/TIFF_Files/TWI",
-  "C:/Users/sssan/University/GEOG761/combined_data.csv/TIFF_Files/SLOPE",
-  "C:/Users/sssan/University/GEOG761/combined_data.csv/TIFF_Files/LAND COVER",
-  "C:/Users/sssan/University/GEOG761/combined_data.csv/TIFF_Files/DEM"
+  "C:/Users/sssan/University/GEOG761/TIFF_Files/ASPECT",
+  "C:/Users/sssan/University/GEOG761/TIFF_Files/CURVATURE",
+  "C:/Users/sssan/University/GEOG761/TIFF_Files/TWI",
+  "C:/Users/sssan/University/GEOG761/TIFF_Files/SLOPE",
+  "C:/Users/sssan/University/GEOG761/TIFF_Files/LAND COVER",
+  "C:/Users/sssan/University/GEOG761/TIFF_Files/DEM"
   
 )
 
@@ -30,9 +30,10 @@ raster_list <- lapply(raster_files, terra::rast)
 names(raster_list) <- file_path_sans_ext(basename(raster_files))
 
 # classify raster types from filenames
-is_aspect    <- grepl("\\baspect\\b",    names(raster_list), ignore.case = TRUE)
-is_slope     <- grepl("\\bslope\\b",     names(raster_list), ignore.case = TRUE)
-is_landcover <- grepl("\\b(land.?cover|lcdb|lulc|lcz)\\b", names(raster_list), ignore.case = TRUE)
+is_aspect    <- grepl("aspect",    names(raster_list), ignore.case = TRUE)
+is_slope     <- grepl("slope",     names(raster_list), ignore.case = TRUE)
+is_landcover <- grepl("(landcover|land_cover|land-cover|lcdb|lulc|lcz|cover)", 
+                      names(raster_list), ignore.case = TRUE)
 
 # single-band only
 raster_list <- lapply(raster_list, function(r) if (nlyr(r) > 1) r[[1]] else r)
@@ -161,9 +162,9 @@ if ("SLOPE_deg" %in% names(final)) {
 # }
 
 # save
-out_csv <- "D:/BECA NUEVA ZELANDA/2025/AUCKLAND UNIVERSITY/ENROLED COURSES/MONITORING SPACE/DATA FINAL PROJECT/landslides_with_variables.csv"
+out_csv <- "C:/Users/sssan/University/GEOG761/landslides_with_variables2.csv"
 write.csv(final, out_csv, row.names = FALSE)
 cat("Saved:", out_csv, "Rows:", nrow(final), "Cols:", ncol(final), "\n")
 
-final_noNA <- final[complete.cases(final), ]
-write.csv(final_noNA, "D:/BECA NUEVA ZELANDA/2025/AUCKLAND UNIVERSITY/ENROLED COURSES/MONITORING SPACE/DATA FINAL PROJECT/landslides_with_vars_noNA.csv", row.names = FALSE)
+
+
