@@ -114,6 +114,20 @@ flowchart LR
 - Input image for all models is RGB only due to Demo purpose and limited of computational resource. Therefore, the models perform not good.
 - For simplicity on Python package handling, all Notebooks are put at root folder. But other functions that should be modulize for DRY and keep notebooks shorter are in `libs` folder.
 
+# Appendix
+
+## 1. North Carolina Map
+
+- An R tutorial for Landslide Susceptibility that initially be used as a reference ([Original Tutorial](https://rstudio-pubs-static.s3.amazonaws.com/1197225_02cc6d05df014871afe325d17589ae02.html#id_0)).
+- All code (converted to Python) and dataset ([Landslide Points of North Carolina 09/20/2024](https://www.nconemap.gov/datasets/ncdenr::landslide-points-of-north-carolina-09-20-2024/explore)) is store in [North Carolina Map](https://github.com/sisn749/Landslide_Susceptibility_GEOG761/tree/main/North%20Carolina%20Map) folder.
+
+## 2. Deep Neural Network sample model with Auckland Data
+- Pre-processed data using typical pipeline, `OneHotEncoder` for Categorical data and `StandardScaler` for Numeric data
+- Design and train the model then apply to dummy data for demo purpose
+- Notebooks:
+  - [0_clean_data.ipynb](./0_clean_data.ipynb)
+  - [1_DNN.ipynb](./1_DNN.ipynb)
+
 # Reference
 
 - [GeoAI](https://opengeoai.org)
