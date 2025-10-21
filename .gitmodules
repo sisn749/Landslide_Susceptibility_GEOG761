@@ -1,0 +1,3 @@
+[submodule "Monitoring_and_Detection"]
+	path = Monitoring_and_Detection
+	url = https://github.com/dhnhut/Landslide-DeepLearning
