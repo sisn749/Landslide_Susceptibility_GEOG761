@@ -101,6 +101,46 @@ non_landslides_complete <- data.frame(
   Latitude = runif(n_points, min = lat_min, max = lat_max),
   Longitude = runif(n_points, min = lon_min, max = lon_max)
 )
+
+non_landslides_complete <- non_landslides_complete %>% select(-Latitude, -Longitude, Longitude, Latitude)
+```
+
+```{r}
+library(sf)
+library(dplyr)
+
+# Example: your dataframe is called df and has columns "Long" and "Lat"
+# Step 1 — make an sf object
+sf_points <- st_as_sf(non_landslides_complete, coords = c("Longitude", "Latitude"), crs = 4326)
+
+# Step 2 — transform to a projected CRS (NZTM = 2193)
+sf_points_proj <- st_transform(sf_points, 2193)
+
+# Step 3 — extract X and Y
+coords <- st_coordinates(sf_points_proj)
+
+# Step 4 — add to original dataframe
+non_landslides_complete$`X Coordinate` <- coords[, 1]
+non_landslides_complete$`Y Coordinate` <- coords[, 2]
+
+
+```
+
+```{r}
+# Example: your dataframe is called df and has columns "Long" and "Lat"
+# Step 1 — make an sf object
+sf_points <- st_as_sf(non_landslides_incomplete, coords = c("Longitude", "Latitude"), crs = 4326)
+
+# Step 2 — transform to a projected CRS (NZTM = 2193)
+sf_points_proj <- st_transform(sf_points, 2193)
+
+# Step 3 — extract X and Y
+coords <- st_coordinates(sf_points_proj)
+
+# Step 4 — add to original dataframe
+non_landslides_incomplete$`X Coordinate` <- coords[, 1]
+non_landslides_incomplete$`Y Coordinate` <- coords[, 2]
+
 ```
 
 
@@ -110,28 +150,55 @@ combined_data_incomplete <- bind_rows(landslides_incomplete, non_landslides_inco
 combined_data_complete <- bind_rows(landslides_complete, non_landslides_complete)
 ```
 
-
 ```{r}
-combined_data_incomplete_clean <- combined_data_incomplete %>%
-  mutate(`Valid Landslide` = case_when(
-    `Valid Landslide` == "Yes" ~ 1,
-    is.na(`Valid Landslide`)   ~ 0,
-    TRUE                     ~ 0   # everything else becomes 0
-  ))
+library(leaflet)
+
+leaflet(combined_data_complete) %>%
+  addTiles() %>%  # base map
+  addCircleMarkers(
+    lng = ~Longitude,
+    lat = ~Latitude,
+    radius = 4,
+    color = "blue",
+    fillOpacity = 0.7,
+    popup = ~paste("Lon:", Longitude, "<br>Lat:", Latitude)
+  )
 ```
 
 ```{r}
-combined_data_complete_clean <- combined_data_complete %>%
-  mutate(`Valid Landslide` = case_when(
-    `Valid Landslide` == "Yes" ~ 1,
-    is.na(`Valid Landslide`)   ~ 0,
-    TRUE                     ~ 0   # everything else becomes 0
-  ))
+library(sf)
+library(leaflet)
+
+# Step 1 — Convert X/Y to sf object
+sf_points <- st_as_sf(combined_data_complete, coords = c("X Coordinate", "Y Coordinate"), crs = 2193)
+
+# Step 2 — Transform to WGS84 (lon/lat) for web maps
+sf_points_wgs84 <- st_transform(sf_points, 4326)
+
+# Step 3 — Plot interactively
+leaflet(sf_points_wgs84) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addCircleMarkers(
+    radius = 4,
+    color = "red",
+    popup = ~paste("X:", "X Coordinate", "<br>Y:", "Y Coordinate")
+  )
+```
+
+```{r}
+combined_data_complete <- combined_data_complete %>%
+  mutate(`Valid Landslide` = ifelse(is.na(`Valid Landslide`), 0,
+                           ifelse(`Valid Landslide` == "Yes", 1, `Valid Landslide`)))
+
+combined_data_incomplete <- combined_data_incomplete %>%
+  mutate(`Valid Landslide` = ifelse(is.na(`Valid Landslide`), 0,
+                           ifelse(`Valid Landslide` == "Yes", 1, `Valid Landslide`)))
+
 ```
 
 
 ```{r}
-write_csv(combined_data_complete_clean, "C:/Users/sssan/University/GEOG761/combined_data_complete_clean.csv")
-write_csv(combined_data_incomplete_clean, "C:/Users/sssan/University/GEOG761/combined_data_incomplete_clean.csv")
+write_csv(combined_data_complete, "C:/Users/sssan/University/GEOG761/combined_data_complete.csv")
+write_csv(combined_data_incomplete, "C:/Users/sssan/University/GEOG761/combined_data_incomplete.csv")
 ```
 
