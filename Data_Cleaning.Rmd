@@ -53,56 +53,99 @@ Sampling random points in the auckland region and constructing the same columns 
 
 
 ```{r}
-# Single reference point
-lon_center <- 174.76
-lat_center <- -36.85
+# Example reference points (you can add as many as you like)
+reference_points <- data.frame(
+  lon_center = c(174.80, 174.51, 174.68, 175.03, 174.56),
+  lat_center = c(-36.94, -36.90, -36.70, -36.92, -36.34)
+)
 
-# Define buffer size in degrees (approx. 0.01 ≈ 1 km)
-lon_buffer <- 0.20  # ~2 km east/west
-lat_buffer <- 0.20  # ~2 km north/south
-
-# Bounding box around the point
-lon_min <- lon_center - lon_buffer
-lon_max <- lon_center + lon_buffer
-lat_min <- lat_center - lat_buffer
-lat_max <- lat_center + lat_buffer
-
-# Number of random points to generate
+# Total number of random points to generate
 n_points <- 11926
 
-# Sample random points
-non_landslides_incomplete <- data.frame(
-  Latitude = runif(n_points, min = lat_min, max = lat_max),
-  Longitude = runif(n_points, min = lon_min, max = lon_max)
+# Buffer size in degrees (approx. 0.01 ≈ 1 km)
+lon_buffer <- 0.025  # ~2 km east/west
+lat_buffer <- 0.025  # ~2 km north/south
+
+# ---- Function to generate random points around one reference ----
+generate_points <- function(lon_center, lat_center, n_sub) {
+  lon_min <- lon_center - lon_buffer
+  lon_max <- lon_center + lon_buffer
+  lat_min <- lat_center - lat_buffer
+  lat_max <- lat_center + lat_buffer
+  
+  data.frame(
+    Latitude = runif(n_sub, min = lat_min, max = lat_max),
+    Longitude = runif(n_sub, min = lon_min, max = lon_max)
+  )
+}
+
+# ---- Distribute total points roughly evenly among reference points ----
+n_refs <- nrow(reference_points)
+points_per_ref <- rep(floor(n_points / n_refs), n_refs)
+# Add remainder points (if not divisible evenly)
+points_per_ref[1:(n_points %% n_refs)] <- points_per_ref[1:(n_points %% n_refs)] + 1
+
+# ---- Generate all points ----
+random_points_list <- mapply(
+  generate_points,
+  lon_center = reference_points$lon_center,
+  lat_center = reference_points$lat_center,
+  n_sub = points_per_ref,
+  SIMPLIFY = FALSE
 )
+
+non_landslides_incomplete <- do.call(rbind, random_points_list)
+
+
 ```
 
 
 ```{r}
-# Single reference point
-lon_center <- 174.76
-lat_center <- -36.85
-
-# Define buffer size in degrees (approx. 0.01 ≈ 1 km)
-lon_buffer <- 0.20  # ~2 km east/west
-lat_buffer <- 0.20  # ~2 km north/south
-
-# Bounding box around the point
-lon_min <- lon_center - lon_buffer
-lon_max <- lon_center + lon_buffer
-lat_min <- lat_center - lat_buffer
-lat_max <- lat_center + lat_buffer
-
-# Number of random points to generate
-n_points <- 12
-
-# Sample random points
-non_landslides_complete <- data.frame(
-  Latitude = runif(n_points, min = lat_min, max = lat_max),
-  Longitude = runif(n_points, min = lon_min, max = lon_max)
+# Example reference points (you can add as many as you like)
+reference_points <- data.frame(
+  lon_center = c(174.80, 174.51, 174.68, 175.03, 174.56),
+  lat_center = c(-36.94, -36.90, -36.70, -36.92, -36.34)
 )
 
-non_landslides_complete <- non_landslides_complete %>% select(-Latitude, -Longitude, Longitude, Latitude)
+# Total number of random points to generate
+n_points <- 12
+
+# Buffer size in degrees (approx. 0.01 ≈ 1 km)
+lon_buffer <- 0.025  # ~2 km east/west
+lat_buffer <- 0.025  # ~2 km north/south
+
+# ---- Function to generate random points around one reference ----
+generate_points <- function(lon_center, lat_center, n_sub) {
+  lon_min <- lon_center - lon_buffer
+  lon_max <- lon_center + lon_buffer
+  lat_min <- lat_center - lat_buffer
+  lat_max <- lat_center + lat_buffer
+  
+  data.frame(
+    Latitude = runif(n_sub, min = lat_min, max = lat_max),
+    Longitude = runif(n_sub, min = lon_min, max = lon_max)
+  )
+}
+
+# ---- Distribute total points roughly evenly among reference points ----
+n_refs <- nrow(reference_points)
+points_per_ref <- rep(floor(n_points / n_refs), n_refs)
+# Add remainder points (if not divisible evenly)
+points_per_ref[1:(n_points %% n_refs)] <- points_per_ref[1:(n_points %% n_refs)] + 1
+
+# ---- Generate all points ----
+random_points_list <- mapply(
+  generate_points,
+  lon_center = reference_points$lon_center,
+  lat_center = reference_points$lat_center,
+  n_sub = points_per_ref,
+  SIMPLIFY = FALSE
+)
+
+non_landslides_complete <- do.call(rbind, random_points_list)
+
+
+
 ```
 
 ```{r}
@@ -153,7 +196,7 @@ combined_data_complete <- bind_rows(landslides_complete, non_landslides_complete
 ```{r}
 library(leaflet)
 
-leaflet(combined_data_complete) %>%
+leaflet(combined_data_incomplete) %>%
   addTiles() %>%  # base map
   addCircleMarkers(
     lng = ~Longitude,
